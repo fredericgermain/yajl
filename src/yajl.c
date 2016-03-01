@@ -56,10 +56,13 @@ yajl_alloc(const yajl_callbacks * callbacks,
         {
             return NULL;
         }
-    } else {
+    }
+#ifndef YAJL_NO_DEFAULT_ALLOC
+    else {
         yajl_set_default_alloc_funcs(&afsBuffer);
         afs = &afsBuffer;
     }
+#endif
 
     hand = (yajl_handle) YA_MALLOC(afs, sizeof(struct yajl_handle_t));
 
