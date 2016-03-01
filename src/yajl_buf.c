@@ -20,18 +20,30 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define YAJL_BUF_FIXED_SIZE 128
+
+#ifndef YAJL_BUF_FIXED_SIZE
 #define YAJL_BUF_INIT_SIZE 2048
+#endif
 
 struct yajl_buf_t {
     size_t len;
     size_t used;
+#ifdef YAJL_BUF_FIXED_SIZE
+    unsigned char data[YAJL_BUF_FIXED_SIZE];
+#else
     unsigned char * data;
+#endif
     yajl_alloc_funcs * alloc;
 };
 
 static
 void yajl_buf_ensure_available(yajl_buf buf, size_t want)
 {
+#ifdef YAJL_BUF_FIXED_SIZE
+    assert(buf != NULL);
+    assert(buf->len >= want + buf->used);
+#else
     size_t need;
     
     assert(buf != NULL);
@@ -51,6 +63,7 @@ void yajl_buf_ensure_available(yajl_buf buf, size_t want)
         buf->data = (unsigned char *) YA_REALLOC(buf->alloc, buf->data, need);
         buf->len = need;
     }
+#endif
 }
 
 yajl_buf yajl_buf_alloc(yajl_alloc_funcs * alloc)
@@ -58,6 +71,9 @@ yajl_buf yajl_buf_alloc(yajl_alloc_funcs * alloc)
     yajl_buf b = YA_MALLOC(alloc, sizeof(struct yajl_buf_t));
     memset((void *) b, 0, sizeof(struct yajl_buf_t));
     b->alloc = alloc;
+#ifdef YAJL_BUF_FIXED_SIZE
+    b->len = YAJL_BUF_FIXED_SIZE;
+#endif
     return b;
 }
 
