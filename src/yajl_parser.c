@@ -283,8 +283,9 @@ yajl_do_parse(yajl_handle hand, const unsigned char * jsonText,
                                         hand->ctx,(const char *) buf, bufLen));
                         } else if (hand->callbacks->yajl_integer) {
                             long long int i = 0;
-                            errno = 0;
+                            //errno = 0;
                             i = yajl_parse_integer(buf, bufLen);
+#if 0
                             if ((i == LLONG_MIN || i == LLONG_MAX) &&
                                 errno == ERANGE)
                             {
@@ -296,6 +297,7 @@ yajl_do_parse(yajl_handle hand, const unsigned char * jsonText,
                                 else *offset = 0;
                                 goto around_again;
                             }
+#endif
                             _CC_CHK(hand->callbacks->yajl_integer(hand->ctx,
                                                                   i));
                         }
