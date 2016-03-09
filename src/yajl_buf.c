@@ -86,7 +86,11 @@ void yajl_buf_free(yajl_buf buf)
 
 void yajl_buf_append(yajl_buf buf, const void * data, size_t len)
 {
-    yajl_buf_ensure_available(buf, len);
+    //yajl_buf_ensure_available(buf, len);
+    if (buf->used + len + 1 >= buf->len) {
+        //trace_putchar('!');
+        len = buf->len - (buf->used + 1);
+    }
     if (len > 0) {
         assert(data != NULL);
         memcpy(buf->data + buf->used, data, len);
