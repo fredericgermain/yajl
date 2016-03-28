@@ -20,6 +20,15 @@
 #include "api/yajl_common.h"
 #include "yajl_alloc.h"
 
+#define YAJL_BUF_FIXED_SIZE 128
+
+struct yajl_buf_t {
+    size_t len;
+    size_t used;
+    unsigned char * data;
+    yajl_alloc_funcs * alloc;
+};
+
 /*
  * Implementation/performance notes.  If this were moved to a header
  * only implementation using #define's where possible we might be 
@@ -35,6 +44,9 @@ typedef struct yajl_buf_t * yajl_buf;
 
 /* allocate a new buffer */
 yajl_buf yajl_buf_alloc(yajl_alloc_funcs * alloc);
+
+/* allocate a new buffer */
+yajl_buf yajl_buf_init_with_buffer(yajl_buf, char* data, size_t len);
 
 /* free the buffer */
 void yajl_buf_free(yajl_buf buf);

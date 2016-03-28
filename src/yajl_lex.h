@@ -114,4 +114,58 @@ size_t yajl_lex_current_line(yajl_lexer lexer);
  *  \n or \r */
 size_t yajl_lex_current_char(yajl_lexer lexer);
 
+
+
+#include "yajl_buf.h"
+
+/* Impact of the stream parsing feature on the lexer:
+ *
+ * YAJL support stream parsing.  That is, the ability to parse the first
+ * bits of a chunk of JSON before the last bits are available (still on
+ * the network or disk).  This makes the lexer more complex.  The
+ * responsibility of the lexer is to handle transparently the case where
+ * a chunk boundary falls in the middle of a token.  This is
+ * accomplished is via a buffer and a character reading abstraction.
+ *
+ * Overview of implementation
+ *
+ * When we lex to end of input string before end of token is hit, we
+ * copy all of the input text composing the token into our lexBuf.
+ *
+ * Every time we read a character, we do so through the readChar function.
+ * readChar's responsibility is to handle pulling all chars from the buffer
+ * before pulling chars from input text
+ */
+
+struct yajl_lexer_t {
+    /* the overal line and char offset into the data */
+    size_t lineOff;
+    size_t charOff;
+
+    /* error */
+    yajl_lex_error error;
+
+    struct yajl_buf_t bufMem;
+    char bufMemMem[YAJL_BUF_FIXED_SIZE];
+
+    /* a input buffer to handle the case where a token is spread over
+     * multiple chunks */
+    yajl_buf buf;
+
+    /* in the case where we have data in the lexBuf, bufOff holds
+     * the current offset into the lexBuf. */
+    size_t bufOff;
+
+    /* are we using the lex buf? */
+    unsigned int bufInUse;
+
+    /* shall we allow comments? */
+    unsigned int allowComments;
+
+    /* shall we validate utf8 inside strings? */
+    unsigned int validateUTF8;
+
+    yajl_alloc_funcs * alloc;
+};
+
 #endif

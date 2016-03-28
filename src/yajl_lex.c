@@ -46,53 +46,6 @@ tokToStr(yajl_tok tok)
 }
 #endif
 
-/* Impact of the stream parsing feature on the lexer:
- *
- * YAJL support stream parsing.  That is, the ability to parse the first
- * bits of a chunk of JSON before the last bits are available (still on
- * the network or disk).  This makes the lexer more complex.  The
- * responsibility of the lexer is to handle transparently the case where
- * a chunk boundary falls in the middle of a token.  This is
- * accomplished is via a buffer and a character reading abstraction.
- *
- * Overview of implementation
- *
- * When we lex to end of input string before end of token is hit, we
- * copy all of the input text composing the token into our lexBuf.
- *
- * Every time we read a character, we do so through the readChar function.
- * readChar's responsibility is to handle pulling all chars from the buffer
- * before pulling chars from input text
- */
-
-struct yajl_lexer_t {
-    /* the overal line and char offset into the data */
-    size_t lineOff;
-    size_t charOff;
-
-    /* error */
-    yajl_lex_error error;
-
-    /* a input buffer to handle the case where a token is spread over
-     * multiple chunks */
-    yajl_buf buf;
-
-    /* in the case where we have data in the lexBuf, bufOff holds
-     * the current offset into the lexBuf. */
-    size_t bufOff;
-
-    /* are we using the lex buf? */
-    unsigned int bufInUse;
-
-    /* shall we allow comments? */
-    unsigned int allowComments;
-
-    /* shall we validate utf8 inside strings? */
-    unsigned int validateUTF8;
-
-    yajl_alloc_funcs * alloc;
-};
-
 #define readChar(lxr, txt, off)                      \
     (((lxr)->bufInUse && yajl_buf_len((lxr)->buf) && lxr->bufOff < yajl_buf_len((lxr)->buf)) ? \
      (*((const unsigned char *) yajl_buf_data((lxr)->buf) + ((lxr)->bufOff)++)) : \
@@ -106,7 +59,7 @@ yajl_lex_alloc(yajl_alloc_funcs * alloc,
 {
     yajl_lexer lxr = (yajl_lexer) YA_MALLOC(alloc, sizeof(struct yajl_lexer_t));
     memset((void *) lxr, 0, sizeof(struct yajl_lexer_t));
-    lxr->buf = yajl_buf_alloc(alloc);
+    lxr->buf = yajl_buf_init_with_buffer(&lxr->bufMem, lxr->bufMemMem, sizeof(lxr->bufMemMem));
     lxr->allowComments = allowComments;
     lxr->validateUTF8 = validateUTF8;
     lxr->alloc = alloc;

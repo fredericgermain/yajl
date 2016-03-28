@@ -73,7 +73,7 @@ yajl_alloc(const yajl_callbacks * callbacks,
     hand->ctx = ctx;
     hand->lexer = NULL; 
     hand->bytesConsumed = 0;
-    hand->decodeBuf = yajl_buf_alloc(&(hand->alloc));
+    hand->decodeBuf = yajl_buf_init_with_buffer(&hand->decodeBufMem, hand->decodeBufMemMem, sizeof(hand->decodeBufMemMem));
     hand->flags	    = 0;
     yajl_bs_init(hand->stateStack, &(hand->alloc));
     yajl_bs_push(hand->stateStack, yajl_state_start);
