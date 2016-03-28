@@ -21,7 +21,7 @@
 #include <string.h>
 #include <stdio.h>
 
-static void CharToHex(unsigned char c, char * hexBuf)
+void CharToHex(unsigned char c, char * hexBuf)
 {
     const char * hexchar = "0123456789ABCDEF";
     hexBuf[0] = hexchar[c >> 4];
@@ -75,7 +75,7 @@ yajl_string_encode(const yajl_print_t print,
     print(ctx, (const char *) (str + beg), end - beg);
 }
 
-static void hexToDigit(unsigned int * val, const unsigned char * hex)
+void hexToDigit(unsigned int * val, const unsigned char * hex)
 {
     unsigned int i;
     for (i=0;i<4;i++) {
@@ -87,7 +87,7 @@ static void hexToDigit(unsigned int * val, const unsigned char * hex)
     }
 }
 
-static void Utf32toUtf8(unsigned int codepoint, char * utf8Buf) 
+void Utf32toUtf8(unsigned int codepoint, char * utf8Buf) 
 {
     if (codepoint < 0x80) {
         utf8Buf[0] = (char) codepoint;
