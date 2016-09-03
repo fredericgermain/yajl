@@ -58,7 +58,7 @@ yajl_parse_integer(const unsigned char *number, unsigned int length)
         ret += (*pos++ - '0');
     }
 
-    return sign * ret;
+    return (sign == 1) ? ret : -ret;
 }
 
 unsigned char *
@@ -315,8 +315,8 @@ yajl_do_parse(yajl_handle hand, const unsigned char * jsonText,
                             buf = yajl_buf_data(hand->decodeBuf);
                             errno = 0;
                             d = strtod((char *) buf, NULL);
-                            if ((d == HUGE_VAL || d == -HUGE_VAL) &&
-                                errno == ERANGE)
+                            //if ((d == HUGE_VAL || d == -HUGE_VAL) &&
+                            if (errno == ERANGE)
                             {
                                 yajl_bs_set(hand->stateStack,
                                             yajl_state_parse_error);
