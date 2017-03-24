@@ -31,6 +31,25 @@
 
 #define MAX_VALUE_TO_MULTIPLY ((LLONG_MAX / 10) + (LLONG_MAX % 10))
 
+typedef enum {
+    PE_CANCELED, /* "client cancelled parse via callback return value" */
+    PA_PREMATURE_EOF,
+    PA_TRAILING_GARBAGE, //"trailing garbage"
+    PA_INTEGER_OVERFLOW, //"integer overflow"
+    PA_NUMERIC_OVERFLOW, // "numeric (floating point) overflow"
+    PA_UNALLOWED_TOKEN, // "unallowed token at this point in JSON text"
+    PA_INVALID_TOKEN,    //"invalid token, internal error"
+    PA_INVALID_OBJECT_KEY, // "invalid object key (must be a string)"
+    PA_INVALID_OBJECT_SEP, // "object key and value must be separated by a colon (':')"
+    PA_INVALID_OBJECT_END, // "after key and value, inside map, I expect ',' or '}'"
+    PA_INVALID_ARRAY_END, //"after array element, I expect ',' or ']'"
+} parse_error_e;
+
+const char* getParseError(parse_error_e e);
+const char* getParseError(parse_error_e e) {
+  return NULL;
+}
+
  /* same semantics as strtol */
 long long
 yajl_parse_integer(const unsigned char *number, unsigned int length)
@@ -149,8 +168,7 @@ yajl_render_error_string(yajl_handle hand, const unsigned char * jsonText,
 #define _CC_CHK(x)                                                \
     if (!(x)) {                                                   \
         yajl_bs_set(hand->stateStack, yajl_state_parse_error);    \
-        hand->parseError =                                        \
-            "client cancelled parse via callback return value";   \
+        hand->parseError = getParseError(PE_CANCELED);            \
         return yajl_status_client_canceled;                       \
     }
 
@@ -175,7 +193,7 @@ yajl_do_finish(yajl_handle hand)
             if (!(hand->flags & yajl_allow_partial_values))
             {
                 yajl_bs_set(hand->stateStack, yajl_state_parse_error);
-                hand->parseError = "premature EOF";
+                hand->parseError = getParseError(PA_PREMATURE_EOF);
                 return yajl_status_error;
             }
             return yajl_status_ok;
@@ -206,7 +224,7 @@ yajl_do_parse(yajl_handle hand, const unsigned char * jsonText,
                                        offset, &buf, &bufLen);
                     if (tok != yajl_tok_eof) {
                         yajl_bs_set(hand->stateStack, yajl_state_parse_error);
-                        hand->parseError = "trailing garbage";
+                        hand->parseError = getParseError(PA_TRAILING_GARBAGE);
                     }
                     goto around_again;
                 }
@@ -291,7 +309,7 @@ yajl_do_parse(yajl_handle hand, const unsigned char * jsonText,
                             {
                                 yajl_bs_set(hand->stateStack,
                                             yajl_state_parse_error);
-                                hand->parseError = "integer overflow" ;
+                                hand->parseError = getParseError(PA_INTEGER_OVERFLOW);
                                 /* try to restore error offset */
                                 if (*offset >= bufLen) *offset -= bufLen;
                                 else *offset = 0;
@@ -320,8 +338,7 @@ yajl_do_parse(yajl_handle hand, const unsigned char * jsonText,
                             {
                                 yajl_bs_set(hand->stateStack,
                                             yajl_state_parse_error);
-                                hand->parseError = "numeric (floating point) "
-                                    "overflow";
+                                hand->parseError = getParseError(PA_NUMERIC_OVERFLOW);
                                 /* try to restore error offset */
                                 if (*offset >= bufLen) *offset -= bufLen;
                                 else *offset = 0;
@@ -350,12 +367,11 @@ yajl_do_parse(yajl_handle hand, const unsigned char * jsonText,
                 case yajl_tok_comma:
                 case yajl_tok_right_bracket:
                     yajl_bs_set(hand->stateStack, yajl_state_parse_error);
-                    hand->parseError =
-                        "unallowed token at this point in JSON text";
+                    hand->parseError = getParseError(PA_UNALLOWED_TOKEN);
                     goto around_again;
                 default:
                     yajl_bs_set(hand->stateStack, yajl_state_parse_error);
-                    hand->parseError = "invalid token, internal error";
+                    hand->parseError = getParseError(PA_INVALID_TOKEN);
                     goto around_again;
             }
             /* got a value.  transition depends on the state we're in. */
@@ -415,8 +431,7 @@ yajl_do_parse(yajl_handle hand, const unsigned char * jsonText,
                     }
                 default:
                     yajl_bs_set(hand->stateStack, yajl_state_parse_error);
-                    hand->parseError =
-                        "invalid object key (must be a string)"; 
+                    hand->parseError = getParseError(PA_INVALID_OBJECT_KEY);
                     goto around_again;
             }
         }
@@ -434,8 +449,7 @@ yajl_do_parse(yajl_handle hand, const unsigned char * jsonText,
                     goto around_again;
                 default:
                     yajl_bs_set(hand->stateStack, yajl_state_parse_error);
-                    hand->parseError = "object key and value must "
-                        "be separated by a colon (':')";
+                    hand->parseError = getParseError(PA_INVALID_OBJECT_SEP);
                     goto around_again;
             }
         }
@@ -459,8 +473,7 @@ yajl_do_parse(yajl_handle hand, const unsigned char * jsonText,
                     goto around_again;
                 default:
                     yajl_bs_set(hand->stateStack, yajl_state_parse_error);
-                    hand->parseError = "after key and value, inside map, "
-                                       "I expect ',' or '}'";
+                    hand->parseError = getParseError(PA_INVALID_OBJECT_END);
                     /* try to restore error offset */
                     if (*offset >= bufLen) *offset -= bufLen;
                     else *offset = 0;
@@ -487,8 +500,7 @@ yajl_do_parse(yajl_handle hand, const unsigned char * jsonText,
                     goto around_again;
                 default:
                     yajl_bs_set(hand->stateStack, yajl_state_parse_error);
-                    hand->parseError =
-                        "after array element, I expect ',' or ']'";
+                    hand->parseError = getParseError(PA_INVALID_ARRAY_END);
                     goto around_again;
             }
         }
