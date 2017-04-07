@@ -31,4 +31,8 @@ void yajl_string_decode(yajl_buf buf, const unsigned char * str,
 
 int yajl_string_validate_utf8(const unsigned char * s, size_t len);
 
+void CharToHex(unsigned char c, char * hexBuf);
+void hexToDigit(unsigned int * val, const unsigned char * hex);
+void Utf32toUtf8(unsigned int codepoint, char * utf8Buf);
+
 #endif

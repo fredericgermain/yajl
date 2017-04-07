@@ -48,7 +48,9 @@ yajl_alloc(const yajl_callbacks * callbacks,
            void * ctx)
 {
     yajl_handle hand = NULL;
+#ifndef YAJL_NO_DEFAULT_ALLOC
     yajl_alloc_funcs afsBuffer;
+#endif
 
     /* first order of business is to set up memory allocation routines */
     if (afs != NULL) {

@@ -29,11 +29,13 @@ static
 void yajl_buf_ensure_available(yajl_buf buf, size_t want)
 {
 #ifdef YAJL_BUF_FIXED_SIZE
+    (void) buf;
+    (void) want;
     assert(buf != NULL);
     assert(buf->len >= want + buf->used);
 #else
     size_t need;
-    
+
     assert(buf != NULL);
 
     /* first call */
@@ -69,7 +71,7 @@ yajl_buf yajl_buf_init_with_buffer(yajl_buf self, char* data, size_t len)
 {
     self->len = len;
     self->used = 0;
-    self->data = data;
+    self->data = (unsigned char*)data;
 
     self->alloc = NULL;
 
@@ -79,6 +81,7 @@ yajl_buf yajl_buf_init_with_buffer(yajl_buf self, char* data, size_t len)
 
 void yajl_buf_free(yajl_buf buf)
 {
+    (void) buf;
     assert(buf != NULL);
  //   if (buf->data) YA_FREE(buf->alloc, buf->data);
     //YA_FREE(buf->alloc, buf);
@@ -86,7 +89,9 @@ void yajl_buf_free(yajl_buf buf)
 
 void yajl_buf_append(yajl_buf buf, const void * data, size_t len)
 {
-    //yajl_buf_ensure_available(buf, len);
+#ifdef YAJL_BUF_FIXED_SIZE
+    yajl_buf_ensure_available(buf, len);
+#endif
     if (buf->used + len + 1 >= buf->len) {
         //trace_putchar('!');
         len = buf->len - (buf->used + 1);

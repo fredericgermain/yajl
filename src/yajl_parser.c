@@ -47,7 +47,8 @@ typedef enum {
 
 const char* getParseError(parse_error_e e);
 const char* getParseError(parse_error_e e) {
-  return NULL;
+  (void)e;
+  return "parseError";
 }
 
  /* same semantics as strtol */
