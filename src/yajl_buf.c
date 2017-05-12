@@ -24,7 +24,10 @@
 #define YAJL_BUF_INIT_SIZE 2048
 #endif
 
+// do not do this test, it will do asserts
+//#define YAJL_BUF_ENSURE_SIZE
 
+#ifdef YAJL_BUF_ENSURE_SIZE
 static
 void yajl_buf_ensure_available(yajl_buf buf, size_t want)
 {
@@ -55,6 +58,7 @@ void yajl_buf_ensure_available(yajl_buf buf, size_t want)
     }
 #endif
 }
+#endif
 
 yajl_buf yajl_buf_alloc(yajl_alloc_funcs * alloc)
 {
@@ -89,7 +93,7 @@ void yajl_buf_free(yajl_buf buf)
 
 void yajl_buf_append(yajl_buf buf, const void * data, size_t len)
 {
-#ifdef YAJL_BUF_FIXED_SIZE
+#if defined YAJL_BUF_FIXED_SIZE && defined YAJL_BUF_ENSURE_SIZE
     yajl_buf_ensure_available(buf, len);
 #endif
     if (buf->used + len + 1 >= buf->len) {
