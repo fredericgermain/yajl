@@ -643,6 +643,8 @@ yajl_lex_lex(yajl_lexer lexer, const unsigned char * jsonText,
 const char *
 yajl_lex_error_to_string(yajl_lex_error error)
 {
+  (void) error;
+#if 0
     switch (error) {
         case yajl_lex_e_ok:
             return "ok, no error";
@@ -673,6 +675,9 @@ yajl_lex_error_to_string(yajl_lex_error error)
                    "not enabled.";
     }
     return "unknown error code";
+#else
+    return "unkn";
+#endif
 }
 
 
